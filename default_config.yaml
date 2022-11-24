@@ -1,0 +1,97 @@
+---
+project: gnn
+device: gpu #Can be 'cpu', 'gpu', 'tpu', 'ipu' (with an added ':#number of devices', default, 1 [ex: 'gpu:2]') or auto
+problem: mcp
+test_enabled: No
+
+data:
+    use_maskedtensor: No
+    path_dataset: datasets # Path where datasets are stored, default data/
+    train: # Train/Val data generation parameters
+        num_examples_train: 10000
+        num_examples_val: 1000
+        n_vertices: 100
+        min_vertices: 50
+        max_vertices: 100
+        sparsify: None #Only works for not fgnns. Put to None if you don't want sparsifying, to an int if you do
+        problems:
+            mcp:
+                edge_density: 0.5
+                clique_size: 20 #To not plant a clique, use 0
+            
+    test: #Test data generation parameters
+        num_examples_test: 960
+        n_vertices: 100
+        min_vertices: 50
+        max_vertices: 100
+        sparsify: None
+        problems:
+            mcp:
+                edge_density: 0.5
+                clique_size: 20 #To not plant a clique, use 0
+
+train: # Training parameters, you can add any Pytorch Lightning Trainer Arguments and pytorch DataLoader arguments
+    max_epochs: 100
+    batch_size:  64
+    optim_args:
+        lr: !!float 1e-3
+        scheduler_step: 3
+        scheduler_factor: 0.5
+        lr_stop: !!float 1e-7
+        monitor: val_loss #Value to monitor for the scheduler (For now, only val_loss)
+    anew: Yes #If put to No, will search for a model with the "start_model" variable below
+    start_model: #Put something like observers/{name_of_experiment}/{experiment_id}/checkpoints/epoch=4-step=412.ckpt
+
+arch: # Architecture and model
+    use_dgl: No
+    name: rsfgnn #rsfgnn, fgnn, gcn, gatedgcn, gat, gin
+    embedding: edge #node or edge
+    eval: edge #node or edge (same as embedding for now!)
+    configs:
+        fgnn:
+            num_blocks: 3
+            original_features_num: 2 
+            in_features: 64
+            out_features: 1
+            depth_of_mlp: 3
+            input_embed: Yes
+        rsfgnn:
+            num_blocks: 3
+            original_features_num: 2 
+            in_features: 64
+            out_features: 1
+            depth_of_mlp: 3
+            input_embed: Yes
+        gatedgcn:
+            n_layers: 3
+            in_dim: 1
+            in_dim_edge: 1
+            hidden_dim: 64
+            n_classes: 2
+        gcn:
+            in_features: 1
+            hidden_features: 64
+            n_classes: 2
+            n_layers: 3
+            depth_of_mlp: 3
+        gin:
+            in_features: 1
+            hidden_features: 64
+            n_classes: 2
+            n_layers: 3
+            depth_of_mlp: 3
+            learn_eps: Yes
+        gat:
+            n_layers: 2
+            in_features: 1
+            hidden_features: 8
+            n_classes: 2
+            num_heads: 8
+            num_out_heads: 1
+            activation: elu
+            input_embed: Yes
+
+observers:
+    use: Yes
+    base_dir: observers #Name of the path where loggers will save their files if needed
+    observer: wandb #For now, only wandb
