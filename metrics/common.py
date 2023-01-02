@@ -6,6 +6,7 @@ import numpy as np
 
 def edgefeat_compute_accuracy(l_inferred, l_targets) -> dict:
     """
+    Computes a simple accuracy for the data
      - raw_scores : list of tensor of shape (N_edges_i)
      - target : list of tensors of shape (N_edges_i) (For DGL, from target.edata['solution'], for FGNN, converted)
     """
@@ -28,6 +29,7 @@ def edgefeat_compute_accuracy(l_inferred, l_targets) -> dict:
 
 def edgefeat_compute_f1(l_inferred, l_targets) -> dict:
     """
+    Computes the F1-score by checking how many solution edges there is in the solution
      - raw_scores : list of tensor of shape (N_edges_i)
      - target : list of tensors of shape (N_edges_i) (For DGL, from target.edata['solution'], for FGNN, converted)
     """
@@ -55,6 +57,7 @@ def edgefeat_compute_f1(l_inferred, l_targets) -> dict:
 
 def edgefeat_ROC_AUC(l_inferred, l_targets) -> dict:
     """
+    Computes the area under the ROCurve
      - inferred : list of tensor of shape (N_edges_i)
      - target : list of tensors of shape (N_edges_i) (For DGL, from target.edata['solution'], for FGNN, converted)
     """
@@ -68,6 +71,7 @@ def edgefeat_ROC_AUC(l_inferred, l_targets) -> dict:
 
 def edgefeat_PR_AUC(l_inferred, l_targets) -> dict:
     """
+    Computes the area under the precision/recall curve
      - inferred : list of tensor of shape (N_edges_i)
      - target : list of tensors of shape (N_edges_i) (For DGL, from target.edata['solution'], for FGNN, converted)
     """
@@ -82,6 +86,9 @@ def edgefeat_PR_AUC(l_inferred, l_targets) -> dict:
     return {'pr_auc': np.mean(l_auc), 'pr_auc_std': np.std(l_auc)}
 
 def edgefeat_total(l_inferred, l_targets) -> dict:
+    """
+    Combines all metrics above
+    """
     final_dict = {}
     final_dict.update(edgefeat_ROC_AUC(l_inferred, l_targets))
     final_dict.update(edgefeat_PR_AUC(l_inferred, l_targets))

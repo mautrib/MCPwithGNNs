@@ -1,8 +1,8 @@
 ---
-project: gnn
+project: gnn #Will automatically add "_{problem}" at the end of the project name
 device: gpu #Can be 'cpu', 'gpu', 'tpu', 'ipu' (with an added ':#number of devices', default, 1 [ex: 'gpu:2]') or auto
 problem: mcp
-test_enabled: No
+test_enabled: Yes
 
 data:
     use_maskedtensor: No
@@ -11,8 +11,6 @@ data:
         num_examples_train: 10000
         num_examples_val: 1000
         n_vertices: 100
-        min_vertices: 50
-        max_vertices: 100
         sparsify: None #Only works for not fgnns. Put to None if you don't want sparsifying, to an int if you do
         problems:
             mcp:
@@ -22,8 +20,6 @@ data:
     test: #Test data generation parameters
         num_examples_test: 960
         n_vertices: 100
-        min_vertices: 50
-        max_vertices: 100
         sparsify: None
         problems:
             mcp:
@@ -40,10 +36,10 @@ train: # Training parameters, you can add any Pytorch Lightning Trainer Argument
         lr_stop: !!float 1e-7
         monitor: val_loss #Value to monitor for the scheduler (For now, only val_loss)
     anew: Yes #If put to No, will search for a model with the "start_model" variable below
-    start_model: #Put something like observers/{name_of_experiment}/{experiment_id}/checkpoints/epoch=4-step=412.ckpt
+    start_model: #Put something like observers/{name_of_experiment}/{experiment_id}/checkpoints/epoch=4-step=412.ckpt or the run_id from the online W&B directory
 
 arch: # Architecture and model
-    use_dgl: No
+    use_dgl: No #Set to No for fgnns, Yes otherwise
     name: rsfgnn #rsfgnn, fgnn, gcn, gatedgcn, gat, gin
     embedding: edge #node or edge
     eval: edge #node or edge (same as embedding for now!)

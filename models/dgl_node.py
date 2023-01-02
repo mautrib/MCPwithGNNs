@@ -16,6 +16,9 @@ class DGLNodeLoss(torch.nn.Module):
         return torch.mean(loss)
 
 class DGL_Node(GNN_Abstract_Base_Class):
+    """
+    Base class for any GNN using DGL with node embeddings.
+    """
     def __init__(self,model, optim_args, **kwargs):
         super().__init__(model, optim_args, **kwargs)
         self.loss = DGLNodeLoss()

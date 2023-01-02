@@ -17,6 +17,9 @@ class NodeClassifLoss(torch.nn.Module):
         return torch.mean(loss)
 
 class FGNN_Node(GNN_Abstract_Base_Class):
+    """
+    Base class for any FGNN with node embeddings.
+    """
     def __init__(self,model, optim_args, **kwargs):
         super().__init__(model, optim_args, **kwargs)
         self.loss = NodeClassifLoss()

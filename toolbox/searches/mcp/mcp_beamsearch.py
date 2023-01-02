@@ -2,7 +2,7 @@ import torch
 
 def insert(container, new_item, key=len):
     """
-    Just a dichotomy to place an item into a tensor depending on a key, supposing the list is ordered in a decresc manner
+    Dichotomy to place an item into a tensor depending on a key, supposing the list is ordered in a decresc manner
     """
     if len(container)==0:
         return [new_item]

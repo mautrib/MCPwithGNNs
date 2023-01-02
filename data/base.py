@@ -5,6 +5,17 @@ from toolbox.conversions import connectivity_to_dgl
 import dgl
 
 class Base_Generator(torch.utils.data.Dataset):
+    """
+    Base class from which all our generators will inherit.
+    These classes will generate data either in a dgl format or a dense-tensor one. It can then convert one to another depending on what is needed.
+    Their base arguments are:
+     - name : 'train', 'val' or 'test'. (Or any other string actually)
+     - path_dataset : the root directory for where to store the data
+     - num_examples : the number of examples in the dataset
+     Any child of this class will need :
+      - "self.compute_example" method that generates a tuple (input_data, target)
+      - "self._solution_conversion" static method that converts a tensor into a dgl graph (see self._solution_conversion below)
+    """
     def __init__(self, name, path_dataset, num_examples):
         self.path_dataset = path_dataset
         self.name = name

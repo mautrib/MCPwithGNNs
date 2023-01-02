@@ -142,6 +142,9 @@ class Thread_MCP_File_Solver(threading.Thread):
         self.done = True
 
 class MCP_Solver():
+    """
+    Implements a multithreaded solver using the Parallel Maximum Clique library
+    """
     def __init__(self,adjs=None, max_threads=4, path='tmp_mcp/',erase_mode ='all', verbose=True, use_file=False):
         utils.check_dir(path)
         self.path = path

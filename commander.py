@@ -17,13 +17,15 @@ class CB_val_train(Callback):
     def on_validation_start(self, trainer, pl_module):
         trainer.model.train()
 
-
 def get_config(filename='default_config.yaml') -> dict:
     with open(filename, 'r') as f:
         config = yaml.safe_load(f)
     return config
 
 def get_observer(config: dict):
+    """
+    Loads the observer if there is one. For now, only wandb is available, but code is made to be easily changeable to PyTorch-Lighnting-compatible loggers.
+    """
     path = config['observers']['base_dir']
     path = os.path.join(os.getcwd(), path)
     utils.check_dir(path)
@@ -40,9 +42,9 @@ def get_observer(config: dict):
 
 def load_model(config: dict, path: str, add_metric=True, **add_metric_kwargs) -> GNN_Abstract_Base_Class:
     """
-     - config : dict. The configuration dictionary (careful, must correspond to the model trying to be loaded). If set to None, will try to download a model from W&B
-     - path : str. The local path of the Pytorch Lightning experiment, or the id of the run if need to be fetched on W&B
-     - add_metric: bool. Adds an external metric to the pytorch lightninh module.
+     - config : dict. The configuration dictionary (careful, it must correspond to the model trying to be loaded). If set to None, will try to download a model from W&B
+     - path : str. The local path of the Pytorch Lightning experiment, or the id of the run if need to be fetched on W&B. (In that case the "project" in configuration will be the directory where the run will be fetched)
+     - add_metric: bool. If True, adds an external metric to the pytorch lightning module.
      - add_metric_kwargs: Arguments passed to the setup_metric function if activated.
     """
     if is_dummy(config['arch']['name']):
@@ -67,6 +69,9 @@ def load_model(config: dict, path: str, add_metric=True, **add_metric_kwargs) ->
     return pl_model
 
 def get_trainer_config(config: dict, only_test=False) -> dict:
+    """
+    Prepares the trainer. If "only_test" is set to False, it will load more configurations to properly track training.
+    """
     trainer_config = config['train']
     accelerator_config = utils.get_accelerator_dict(config['device'])
     trainer_config.update(accelerator_config)
@@ -78,6 +83,9 @@ def get_trainer_config(config: dict, only_test=False) -> dict:
     return clean_config
 
 def setup_trainer(config: dict, model: GNN_Abstract_Base_Class, watch=True, only_test=False) -> pl.Trainer:
+    """
+    Function creating the PyTorch Lightning trainer.
+    """
     trainer_config = get_trainer_config(config, only_test=only_test)
     if config['observers']['use']:
         logger = get_observer(config)
@@ -90,6 +98,9 @@ def setup_trainer(config: dict, model: GNN_Abstract_Base_Class, watch=True, only
     return trainer
 
 def train(config: dict)->pl.Trainer:
+    """
+    Main train function. Prepares trainer, prepares metrics, loads model, loads datasets then starts training.
+    """
     if is_dummy(config['arch']['name']):
         print("Dummy architecture, can't train.")
         return None
@@ -104,6 +115,14 @@ def train(config: dict)->pl.Trainer:
     return trainer
 
 def test(config: dict, trainer=None, model=None, dataloaders=None, **kwargs) -> None:
+    """
+    Main Test function.
+      - config : The main configuration file
+      - trainer: None if there was no training, if there was, should be the PyTorch Lightning trainer. It will be used to get the best model from it.
+      - model : if the trainer is not available, the model can be passed with this argument. If there is no trainer nor model, the code will attempt to fetch it with the configuration file.
+      - dataloaders : can be used to pass a dataset directly instead of generating/fetching it with the configuration.
+      - kwargs : additional arguments that will be passed to a generated trainer (if trainer was None)
+    """
     if dataloaders is None: dataloaders = get_test_dataset(config)
     arg_dict = {'dataloaders': dataloaders,
                 'verbose':True

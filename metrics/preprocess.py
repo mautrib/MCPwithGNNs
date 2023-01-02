@@ -2,6 +2,12 @@ import torch
 import dgl
 from toolbox.conversions import edge_format_to_dense_tensor
 
+"""
+These functions will convert different type of embeddings to others.
+For now the only types that are interchangeable are "edgefeat" (DGL sparse type) and "fulledge", the dense tensors.
+Each function tries to recognize the type of data passed to it. If it doesn't, it raises assertion or NotImplementedErrors
+"""
+
 def fulledge_converter(raw_scores, target, data=None, **kwargs):
     if isinstance(target, dgl.DGLGraph):
         if len(raw_scores)==target.num_edges():

@@ -34,6 +34,9 @@ def get_generator_class(problem_key):
     raise NotImplementedError(f"Generator for problem {problem_key} hasn't been implemented or defined in data/__init__.py yet.")
 
 def check_maskedtensor_compatibility(use_maskedtensor, problem, force_check=True):
+    """
+    In case there is a need for using masked tensor, which enable the use of variable size of graphs with FGNNs.
+    """
     problem_uses_mt = problem in MASKEDTENSOR_PROBLEMS
     warning_str=''
     if use_maskedtensor and not(problem_uses_mt):
@@ -49,6 +52,9 @@ def check_maskedtensor_compatibility(use_maskedtensor, problem, force_check=True
             logging.exception(warning_str)
 
 def _collate_fn_tensor_node(samples_list):
+    """
+    Custom collate function for FGNN dense data with node embeddings.
+    """
     bs = len(samples_list)
     inputs = [input for (input, _) in samples_list]
     input_batch = torch.stack(inputs)
@@ -58,6 +64,9 @@ def _collate_fn_tensor_node(samples_list):
     return (input_batch,target_batch)
 
 def _collate_fn_tensor_edge(samples_list):
+    """
+    Custom collate function for FGNN dense data with edge embeddings.
+    """
     inputs = [input for (input, _) in samples_list]
     input_batch = torch.stack(inputs)
 
@@ -66,6 +75,9 @@ def _collate_fn_tensor_edge(samples_list):
     return (input_batch,target_batch)
 
 def tensor_to_pytorch(generator, embed, batch_size=32, shuffle=False, num_workers=4, **kwargs):
+    """
+    Prepares the PyTorch Dataloader for dense tensors used by FGNNs.
+    """
     if embed=='edge':
         collate_fn = _collate_fn_tensor_edge
     elif embed=='node':
@@ -76,7 +88,10 @@ def tensor_to_pytorch(generator, embed, batch_size=32, shuffle=False, num_worker
     return pytorch_loader
 
 def _collate_fn_mt(samples_list):
-    """We assume that we got a list of tensors of dimension 3 with dims 1 and 2 equal, and that all tensors have the same n_features : shape=(n_vertices,n_vertices,n_features)"""
+    """
+    Custom collate function for FGNN dense masked tensor data.
+    We assume that we got a list of tensors of dimension 3 with dims 1 and 2 equal, and that all tensors have the same n_features : shape=(n_vertices,n_vertices,n_features)
+    """
     input1_list = [input1 for (input1, _) in samples_list]
     target_list = [target for (_,target) in samples_list]
     input_mt = maskedtensor.from_list(input1_list,dims=(0,1))
@@ -88,6 +103,9 @@ def maskedtensor_to_pytorch(generator, batch_size=32, shuffle=False, **kwargs):
     return pytorch_loader
 
 def _collate_fn_dgl(samples_list):
+    """
+    Custom collate function for dgl graphs. (We simply use the dgl.batch method with both inputs and targets)
+    """
     input1_list = [input1 for (input1, _) in samples_list]
     target_list = [target for (_,target) in samples_list]
     input_batch = dglbatch(input1_list)
@@ -99,6 +117,11 @@ def dgl_to_pytorch(generator, batch_size, shuffle=False, num_workers=4, **kwargs
     return pytorch_loader
 
 def get_generator(config:dict, type:str):
+    """
+    Fetches the right generator class for the problem and generates it.
+     - config : the config dictionary
+     - type : either 'train','val' or 'test.
+    """
     problem_key = config['problem'].lower()
     Generator_Class = get_generator_class(problem_key)
     
@@ -112,7 +135,14 @@ def get_generator(config:dict, type:str):
     return dataset
 
 def get_dataset(config:dict, type:str, dgl_check=True, mt_check=True, dataloader_args={}):
-
+    """
+    Loads the dataset needed.
+     - config : the config dictionary
+     - type : 'train', 'val' or 'test'.
+     - dgl_check : if set to True, will raise an error in the case there is an incompatibility between the model loaded and the dataset. If False, will just log a warning.
+     - mt_check : same as dgl_check but with masked tensors
+     - dataloader_args : additional arguments to pass to the dataloader
+    """
     dataset = get_generator(config, type)
 
     use_dgl = config['arch']['use_dgl']
@@ -136,6 +166,8 @@ def get_dataset(config:dict, type:str, dgl_check=True, mt_check=True, dataloader
         dataloaded = tensor_to_pytorch(dataset, embed,**loader_config, **dataloader_args)
 
     return dataloaded
+
+"""Some shortcut functions to easily get data generators and data loaders"""
 
 def get_train_val_generators(config:dict):
     train_gen = get_generator(config, 'train')

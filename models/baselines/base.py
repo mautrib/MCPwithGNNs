@@ -4,6 +4,9 @@ import torch
 from models.dgl_edge import DGLEdgeLoss
 
 class UntrainableClass(DummyClass):
+    """
+    Base class for any untrainable models (for instance, any baseline)
+    """
     def __init__(self, batch_size=None, sync_dist=True):
         super().__init__(batch_size, sync_dist)
 

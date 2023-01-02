@@ -20,6 +20,9 @@ class EdgeClassifLoss(torch.nn.Module):
         return torch.mean(loss)
 
 class FGNN_Edge(GNN_Abstract_Base_Class):
+    """
+    Base class for any FGNN with edge embeddings.
+    """
     
     def __init__(self,model, optim_args, **kwargs):
         super().__init__(model, optim_args, **kwargs)

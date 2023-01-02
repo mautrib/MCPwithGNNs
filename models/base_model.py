@@ -4,6 +4,12 @@ from toolbox.utils import get_lr
 
 class DummyClass(pl.LightningModule):
 
+    """
+    Base Abstract class from which all models should inherit.
+    It implements the logging functions and the attachment of the metric.
+    It can be used for any baseline algorithms that don't need training too.
+    """
+
     def __init__(self, batch_size=None, sync_dist=True):
         super().__init__()
 
@@ -31,6 +37,9 @@ class DummyClass(pl.LightningModule):
                 self.log(f'{prefix}/metrics/{key}', value, sync_dist=sync_dist)
 
 class GNN_Abstract_Base_Class(DummyClass):
+    """
+    Base Abstract class from which all GNN models should inherit.
+    """
 
     def __init__(self, model, optim_args, batch_size=None, sync_dist=True):
         super().__init__(batch_size=batch_size, sync_dist=sync_dist)

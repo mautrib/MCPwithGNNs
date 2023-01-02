@@ -10,8 +10,19 @@ EMBED_TYPES = {
 
 MCP_VARIANTS = ('mcp', 'mcphard', 'mcptrue', 'mcptruehard')
 
+"""
+Each of these functions is made to add other problems easily. They are implemented in the way get_{type}_{embedding}_metric(problem):
+ - type : 'trainval' or 'test'
+ - embedding : One of the 3 types of embedding ('node','edgefeat','fulledge')
+ - problem : The name of the problem, 'mcp', 'mcptrue' etc.. Can be easily changed to new problems.
+ Each of these functions returns a function that must take three arguments : l_inferred, l_targets, l_adjacency
+ - l_inferred : list of the output of the model
+ - l_targets : list of the solutions/targets from the dataset
+ - l_adjacency (optional) : the list of adjacency matrices in a dense format.
+"""
+
 def get_trainval_fulledge_metric(problem):
-    if problem=='mcp':
+    if problem in MCP_VARIANTS:
         return fulledge_compute_f1
     raise NotImplementedError(f"Train/val metric for fulledge problem {problem} has not been implemented.")
 
@@ -21,7 +32,7 @@ def get_test_fulledge_metric(problem):
     raise NotImplementedError(f"Test metric for fulledge problem {problem} has not been implemented.")
 
 def get_trainval_edgefeat_metric(problem):
-    if problem=='mcp':
+    if problem in MCP_VARIANTS:
         return edgefeat_compute_f1
     raise NotImplementedError(f"Train/val metric for edge problem {problem} has not been implemented.")
 
@@ -63,6 +74,10 @@ def get_test_metric(eval, problem):
     return eval_fn
 
 def get_preprocessing(embed, eval, problem):
+    """
+    Prepares a preprocessing function that will convert the output embedding type of the model to the needed embedding type by the evaluation.
+    For instance, it can be useful if our model uses 'edge' feature embeddings (like the DGL models), but we want it to convert to a dense 'fulledge' embedding to compare it to FGNN.
+    """
     if embed=='edge':
         if eval=='edge':
             if problem in (MCP_VARIANTS):
@@ -91,6 +106,9 @@ def get_preprocess_additional_args(problem: str, config: dict):
     return {}
 
 def assemble_metric_function(preprocess_function, eval_function, preprocess_additional_args=None):
+    """
+    Creates the output function 'final_function' that will process the output of the model, evaluate the metrics, and return a dictionary with all evaluated values.
+    """
     if preprocess_additional_args is None:
         preprocess_additional_args = {}
     def final_function(raw_scores, target, **kwargs):
@@ -106,7 +124,13 @@ def assemble_metric_function(preprocess_function, eval_function, preprocess_addi
         return result
     return final_function
 
-def setup_trainval_metric(pl_model: GNN_Abstract_Base_Class, config: dict, soft=True)-> None:
+def setup_trainval_metric(pl_model: GNN_Abstract_Base_Class, config: dict, soft=False)-> None:
+    """
+    Generates the corresponding metric function and attaches it to the model.
+     - pl_model : the Pytorch Lightning model
+     - config : the configuration dictionary
+     - soft : if set to False, will raise an error if the train_val metric hasn't been implemented. If True, will let it pass with a warning
+    """
     problem = config['problem']
     embed = config['arch']['embedding']
     embed = EMBED_TYPES.get(embed, embed)

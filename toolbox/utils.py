@@ -56,6 +56,9 @@ def get_accelerator_dict(device: str):
     return accelerator_dict
 
 def clean_config(config):
+    """
+    Cleans the configuration for reading on any logger : removes all unneeded rows
+    """
     problem_key = config['problem']
     arch_name = config['arch']['name']
     clean_one = copy.deepcopy(config)

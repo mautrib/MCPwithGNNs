@@ -5,6 +5,12 @@ import numpy as np
 from toolbox.utils import is_adj
 
 def sparsify_adjacency(adjacency, sparsify, distances):
+    """
+    From an adjacency matrix, keeps only the edges of the 'sparsify' closest neighbors, depending on their distances
+     - adjacency : Adjacency matrix
+     - sparsify (int): number of closest neighbors to keep
+     - distances : distances between the nodes 
+    """
     assert is_adj(adjacency), "Matrix is not an adjacency matrix"
     assert isinstance(sparsify,int), f"Sparsify not recognized. Should be int (number of closest neighbors), got {sparsify=}"
     assert distances.shape == adjacency.shape, f"Distances of different shape than adjacency {distances.shape}!={adjacency.shape}"
@@ -19,6 +25,9 @@ def sparsify_adjacency(adjacency, sparsify, distances):
     return adjacency*mask
 
 def _adjacency_to_dgl(adj):
+    """
+    Converts a dense adjacency matrix to a DGL graph
+    """
     assert is_adj(adj), "Matrix is not an adjacency matrix"
     N,_ = adj.shape
     mgrid = np.mgrid[:N,:N].transpose(1,2,0)
@@ -30,8 +39,8 @@ def _adjacency_to_dgl(adj):
 
 def dense_tensor_to_edge_format(dense_tensor: torch.Tensor, edges: dgl.DGLGraph or Tuple):
     """
-    Converts a dense tensor to edge_features, according to the edges given in edges.
-    edges can be either be of the form (u,v), that is, a set of src, dst or a dgl graph
+    Converts a dense tensor to edge features, according to the edges given in 'edges'.
+    'edges' can be either be of the form (u,v), that is, a set of src, dst or a dgl graph
     """
     assert dense_tensor.dim()==2 and dense_tensor.shape[0]==dense_tensor.shape[1], f"Dense Tensor isn't of shape (N,N)"
     if isinstance(edges, dgl.DGLGraph):
@@ -42,6 +51,9 @@ def dense_tensor_to_edge_format(dense_tensor: torch.Tensor, edges: dgl.DGLGraph 
     return edge_tensor.unsqueeze(-1)
 
 def edge_format_to_dense_tensor(edge_features: torch.Tensor, graph: dgl.graph):
+    """
+    Converts a an edge features tensor to a dense tensor, according to 'graph''s edges
+    """
     N = graph.num_nodes()
     if edge_features.dim()==1:
         N_edges = len(edge_features)
@@ -56,6 +68,12 @@ def edge_format_to_dense_tensor(edge_features: torch.Tensor, graph: dgl.graph):
     return dense_tensor
 
 def connectivity_to_dgl(connectivity_graph, sparsify=None, distances = None):
+    """
+    Converts a connectivity matrix to a DGL graph.
+     - connectivity_graph : the connectivity tensor (should be (N_nodes, N_nodes, 1+N_edge_features))
+     - sparsify (None or int) : if int, will only keep the edges corresponding to the 'sparsify' closest neighbors
+     - distances (None or tensor) : tensor of the distances between nodes. If set to None, will consider the second row of edge features as the distance (as the first should be degrees)
+    """
     assert connectivity_graph.dim()==3, "Tensor dimension not recognized. Should be (N_nodes, N_nodes, N_features)"
     N, _, N_feats = connectivity_graph.shape
     degrees = connectivity_graph[:,:,0]

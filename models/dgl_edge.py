@@ -14,6 +14,9 @@ class DGLEdgeLoss(torch.nn.Module):
         return torch.mean(loss)
 
 class DGL_Edge(GNN_Abstract_Base_Class):
+    """
+    Base class for any GNN using DGL with edge embeddings.
+    """
     
     def __init__(self,model, optim_args, **kwargs):
         super().__init__(model, optim_args, **kwargs)
