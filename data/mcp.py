@@ -67,7 +67,7 @@ class MCP_Generator(Base_Generator):
             raise ValueError('Generative model {} not supported'
                              .format(self.generative_model))
         if self.clique_size==0:
-            B,K = self._get_max_clique(g)
+            B,K = self._get_max_clique(g, W)
         else:
             B,K = self._plant_clique(W)
         K = K.to(int)
@@ -92,17 +92,6 @@ class MCP_Generator(Base_Generator):
         K[:k,:k] = torch.ones((k,k)) - torch.eye(k)
         W[:k,:k] = torch.ones((k,k)) - torch.eye(k)
         return W, K
-
-# Why do we need this?
-    @staticmethod
-    def add_clique_old(W,k):
-        K = torch.zeros((len(W),len(W)))
-        indices = random.sample(range(len(W)),k)
-        l_indices = [(id_i,id_j) for id_i in indices for id_j in indices if id_i!=id_j] #Makes all the pairs of indices where we put the clique (get rid of diagonal terms)
-        t_ind = torch.tensor(l_indices)
-        K[t_ind[:,0],t_ind[:,1]] = 1
-        W[t_ind[:,0],t_ind[:,1]] = 1
-        return W,K
 
     @staticmethod
     def mcp_adj_to_ind(adj)->list:
